@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CEREBRAIN - Fase 4 </title>
+    <style>
+        /* [ESTILOS GLOBALES Y ESTRUCTURA BASE] */
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f2f5ff; }
+        /* La vista de inicio se muestra por defecto */
+        .view-container { display: none; max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        #home-view { display: block; } /* Mostrar Home por defecto */
+
+        header { background: white; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+        .nav { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; padding: 0 15px; }
+        .brand { font-weight: bold; color: #1e3a8a; font-size: 24px; display: flex; align-items: center; cursor: pointer; }
+        .brand .logo { width: 30px; height: 30px; background-color: #1e3a8a; border-radius: 5px; margin-right: 8px; display: inline-block; }
+
+        /* Estilos para los botones de navegación */
+        .nav button { 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            margin-left: 10px; 
+            font-weight: bold; 
+            transition: background 0.3s; 
+            cursor: pointer;
+        }
+        
+        /* Estilos específicos de botones */
+        .nav button.primary { background: #1e3a8a; } /* Color para Inicio, Dudas, Tutoriales */
+        .nav button.primary:hover { background: #3857a6; }
+        
+        .nav button.logout { background: #e53e3e; } /* Rojo para Cerrar sesión */
+        .nav button.logout:hover { background: #c53030; }
+
+        /* Botón de Notificaciones- Naranja */
+        .nav button.notifications { 
+            background: #ff9800; 
+            position: relative; 
+            padding: 8px 15px;
+            line-height: 1; 
+        } 
+        .nav button.notifications:hover { background: #e68900; }
+
+        /* Botón de Perfil - Verde */
+        .nav button#perfil-btn {
+            background: #48bb78;
+        }
+        .nav button#perfil-btn:hover {
+            background: #38a169;
+        }
+        
+        /* Indicador de Notificaciones Pendientes */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #e53e3e;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Clase para el botón activo */
+        .nav button.activo { 
+            filter: brightness(1.2); /* Un ligero brillo para destacar */
+        }
+        
+        /* Estado activo inicial para el botón de Inicio */
+        #home-btn { background-color: #3857a6 !important; }
+
+        /* Layout Grid para TODAS las vistas principales (2 columnas) */
+        .main-grid { 
+            display: grid; 
+            grid-template-columns: 220px 1fr; 
+            gap: 20px; 
+        } 
+        
+        /* Layout Grid para las vistas con ASIDE ELIMINADO (PERFIL y NOTIFICACIONES) */
+        .main-grid.single-column {
+            grid-template-columns: 1fr;
+        }
+
+        .aside, .section { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        }
+
+        /* ASIDE: Estilos de Navegación Rápida/Opciones */
+        .aside h3 { margin-top: 0; color: #1e3a8a; font-size: 1.2rem; }
+        .area button { 
+            display: block; width: 100%; margin-bottom: 8px; padding: 10px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 6px; text-align: left; font-weight: 500; transition: background 0.2s; 
+            color: #4a5568;
+        }
+        .area button:hover { background: #eef2ff; border-color: #cdd5f3; }
+        
+        /* HOME: Card styles  */
+        .section h2 { color: #2d3748; margin-top: 0; }
+        .section h3 { color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;}
+
+        .card { 
+            border: 1px solid #eee; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            cursor: default; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            background: #fff;
+        }
+        .card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card h3 { 
+            margin: 0 0 5px 0; 
+            font-size: 1.1rem; 
+            color: #1e3a8a; 
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .card p {
+            font-size: 0.95rem;
+            color: #4a5568;
+            margin: 0 0 10px 0;
+        }
+        .duda-card {
+             border-left: 4px solid #4299e1; /* Borde azul para dudas */
+        }
+        .duda-card .meta {
+            font-size: 0.85rem;
+            color: #718096;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 5px;
+            border-top: 1px dotted #e2e8f0;
+        }
+        .tutorial-card {
+             border-left: 4px solid #3f51b5; /* Borde morado/azul para tutoriales */
+        }
+        .tutorial-card h3 {
+            color: #3f51b5;
+        }
+        .tag { background: #eef2ff; color: #1e3a8a; padding: 3px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px; display: inline-block; margin-top: 5px;}
+
+
+        /* ========================================================== */
+        /* PERFIL: */
+        /* ========================================================== */
+        .profile-container { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%;}
+        .profile-card { max-width: 600px; width: 100%; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin: 0 auto; border: 1px solid #e2e8f0; }
+        
+        /* Estilo del Avatar */
+        .avatar { 
+            width: 120px; 
+            height: 120px; 
+            border-radius: 50%; 
+            /* Fondo y color del icono */
+            background: #eef2ff; /* Fondo claro */
+            color: #1e3a8a; /* Icono azul oscuro */
+            font-size: 50px; 
+            /* Borde */
+            border: 3px solid #1e3a8a; /* Borde azul oscuro */
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .profile-card h2 { color: #1e3a8a; margin-top: 0; font-size: 1.8rem; }
+        
+        /*  Vista de Lectura (info-row) */
+        .info-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 0; 
+            border-bottom: 1px dashed #e2e8f0; 
+            text-align: left;
+            font-size: 0.95rem; 
+        }
+        .info-label { 
+            font-weight: 500; 
+            color: #4a5568; 
+            /* Asegura que las etiquetas ocupen el espacio necesario y no se vean muy negritas */
+        }
+        .info-value { 
+            color: #2d3748; /* Color oscuro */
+            font-weight: bold; /* Valores en negrita */
+            text-align: right;
+        }
+
+        /* Estilos del Formulario de Edición */
+        .form-group { text-align: left; margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; color: #4a5568; margin-bottom: 5px; }
+        .form-group input, .form-group select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+            font-size: 1rem;
+        }
+        
+        /*  Botones de Acción */
+        .action-btn { 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: background 0.3s; 
+            margin-top: 20px; 
+            margin-right: 10px;
+        }
+        .action-btn i { margin-right: 5px; }
+        
+        /* Botón Editar Perfil (Azul claro de la imagen) */
+        .edit-btn { 
+            background: #4299e1; /* Azul de la imagen */
+            color: white; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        }
+        .edit-btn:hover { background: #3182ce; }
+        
+        /* Botón Guardar Cambios (Verde de la imagen) */
+        .save-btn { 
+            background: #38a169; /* Verde de la imagen */
+            color: white; 
+        }
+        .save-btn:hover { background: #2f855a; }
+        
+        /* Botón Cancelar (Gris de la imagen) */
+        .cancel-btn { 
+            background: #a0aec0; /* Gris de la imagen */
+            color: white; /* Texto blanco en el botón gris */
+        }
+        .cancel-btn:hover { background: #718096; }
+        
+
+        /* NOTIFICACIONES: Specific styles  */
+        .notification-list { margin-top: 20px; }
+        .notification-item { display: flex; align-items: flex-start; background: #f7f7f7; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid #4a5568; transition: all 0.2s; cursor: pointer;}
+        .notification-item.unread { background: #fff3e0; border-left: 5px solid #ff9800; font-weight: bold;}
+        .notif-icon { font-size: 20px; margin-right: 15px; color: #1e3a8a; line-height: 1.5; }
+        .notif-content a { color: #4299e1; text-decoration: none; font-weight: bold; }
+        .toggle-switch-container { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-radius: 8px; background: #eef2ff; margin-bottom: 20px; border: 1px solid #cdd5f3;}
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2f855a; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .info { background-color: #e6f3ff; color: #1e3a8a; border: 1px solid #cdd5f3; }
+
+
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<div id="app-container">
+    <header id="main-header">
+        <div class="nav">
+            <div class="brand" onclick="cambiarVista('home-view')">
+                <span class="logo"></span> 
+                CEREBRAIN
+            </div>
+            <div>
+                <button id="home-btn" class="primary activo" style="background-color: #3857a6;" onclick="cambiarVista('home-view')">Inicio</button>
+                
+                <button class="notifications" id="notif-btn" onclick="cambiarVista('notificaciones-view')">
+                    Notificaciones
+                    <span id="notif-badge" class="notification-badge" style="display: none;"></span>
+                </button>
+                
+                <button class="primary" onclick="mostrarAlerta('Funcionalidad de Dudas no activa.', 'info', 'status-message-perfil')">Dudas</button>
+                <button class="primary" onclick="mostrarAlerta('Funcionalidad de Tutoriales no activa.', 'info', 'status-message-perfil')">Tutoriales</button>
+                
+                <button id="perfil-btn" onclick="cambiarVista('perfil-view')">Perfil</button>
+                
+                <button class="logout" onclick="alert('Simulación: Sesión cerrada')">Cerrar sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <div id="home-view" class="view-container">
+        <div class="main-grid">
+            <aside class="aside">
+                <h3>Navegación Rápida</h3>
+                <div class="area">
+                    <button onclick="mostrarAlerta('Funcionalidad de navegación rápida no activa.', 'info', 'status-message-perfil')">Ir a Foro de Dudas</button>
+                    <button onclick="mostrarAlerta('Funcionalidad de navegación rápida no activa.', 'info', 'status-message-perfil')">Ver Tutoriales</button>
+                </div>
+            </aside>
+            <section class="section">
+                <h2>Tablero de Inicio</h2>
+                <p>Bienvenido. Usa la barra de navegación para saltar entre las secciones.</p>
+
+                <h3>Últimas Dudas</h3>
+                <div class="card duda-card">
+                    <h3>¿Cómo resolver un sistema 3x3 por sustitución?</h3>
+                    <p>Estoy atascado en el paso de despeje de la tercera variable. Intenté despejar z de la tercera ecuación, pero al sustituir en las otras dos, las expresiones se vuelven demasiado complejas. ¿Existe alguna forma más sencilla de abordar este problema con el método de sustitución, o es mejor cambiar a otro método como Gauss? Necesito un ejemplo o un consejo para simplificar los pasos.</p>
+                    <div><span class="tag">álgebra</span><span class="tag">ecuaciones</span></div>
+                    <div class="meta">
+                        <span>Matemáticas</span>
+                        <span>12 Respuestas</span>
+                    </div>
+                </div>
+
+                <h3>Tutorial Destacado </h3>
+                <div class="card tutorial-card">
+                    <h3><i class="fas fa-video"></i> Introducción al Modelo OSI</h3>
+                    <p>Comprende la arquitectura de red capa por capa.</p>
+                     <div class="meta">
+                        <span>Redes</span>
+                        <span>30 min</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="perfil-view" class="view-container">
+        <div class="main-grid single-column">
+            
+            <section class="section">
+                
+                <div id="perfil-lectura">
+                    <div class="profile-container">
+                        <div class="profile-card">
+                            <div class="avatar"><i class="fas fa-user"></i></div>
+                            <h2 id="perfil-nombre-display"></h2>
+                            <p id="perfil-desc-display" style="color: #718096; margin-bottom: 30px;"></p>
+
+                            <div class="profile-info">
+                                
+                                <div class="info-row">
+                                    <span class="info-label">Nombre Completo:</span>
+                                    <span class="info-value" id="info-nombre"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Correo Electrónico:</span>
+                                    <span class="info-value" id="info-email"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Área de Interés Principal:</span>
+                                    <span class="info-value" id="info-interes"></span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Miembro desde:</span>
+                                    <span class="info-value" id="info-miembro"></span>
+                                </div>
+                                <div class="info-row" style="border-bottom: none;">
+                                    <span class="info-label">Total de Contribuciones:</span>
+                                    <span class="info-value" id="info-contribuciones"></span>
+                                </div>
+                                
+                            </div>
+
+                            <button class="action-btn edit-btn" onclick="mostrarSubVistaPerfil('perfil-edicion')">
+                                <i class="fas fa-edit"></i> Editar Perfil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="perfil-edicion" style="display: none;">
+                    <div class="profile-container">
+                        <div class="profile-card">
+                            <div class="avatar"><i class="fas fa-user-edit"></i></div>
+                            <h2>Editar Perfil de Usuario</h2>
+                            <p style="color: #718096; margin-bottom: 20px; font-size: 0.9rem;">Actualiza tu información personal y tus áreas de interés.</p>
+
+                            <form id="profile-form" onsubmit="event.preventDefault(); guardarPerfil();">
+                                <div class="form-group"><label for="nombreCompleto">Nombre Completo:</label><input type="text" id="nombreCompleto" required></div>
+                                <div class="form-group"><label for="email">Correo Electrónico:</label><input type="email" id="email" required></div>
+                                <div class="form-group">
+                                    <label for="interesPrincipal">Área de Interés Principal:</label>
+                                    <select id="interesPrincipal" required>
+                                        <option value="Redes">Redes y Telecomunicaciones</option>
+                                        <option value="Matematicas">Matemáticas</option>
+                                        <option value="SistemasDigitales">Sistemas Digitales</option>
+                                    
+                                    </select>
+                                </div>
+                                <div class="form-group"><label for="descripcion">Descripción Breve:</label><input type="text" id="descripcion"></div>
+
+                                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                                    <button type="submit" class="action-btn save-btn"><i class="fas fa-save"></i> Guardar Cambios</button>
+                                    <button type="button" class="action-btn cancel-btn" onclick="mostrarSubVistaPerfil('perfil-lectura')"><i class="fas fa-times"></i> Cancelar</button>
+                                </div>
+                                
+                                <div id="status-message-perfil" class="success"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <div id="notificaciones-view" class="view-container">
+        <div class="main-grid single-column">
+            
+            <section class="section">
+                <h2><i class="fas fa-bell"></i> Centro de Notificaciones</h2>
+                
+                <div class="area" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <select id="notif-filter" style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem;">
+                        <option value="all">Todas</option>
+                    </select>
+                </div>
+
+
+                <div class="toggle-switch-container">
+                    <span class="toggle-label">Activar Notificaciones de Respuesta</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggleNotificaciones" onchange="toggleNotif(this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="status-message-notif" class="info"></div>
+
+                <h3 style="color:#2d3748; font-weight: bold; border-bottom: none; padding-bottom: 0;">Notificaciones Recientes (<span id="notif-count"></span> no leídas)</h3>
+                
+                <div id="notif-list" class="notification-list">
+                    </div>
+
+                <button class="action-btn cancel-btn" onclick="marcarTodasLeidas()">Marcar todas como leídas</button>
+            </section>
+        </div>
+    </div>
+
+
+</div>
+
+<footer>
+    <p style="text-align:center; padding:20px; font-size:14px; color:#666; margin-top:20px;">© CEREBRAIN 2025 — Sistema Unificado (Fase 4)</p>
+</footer>
+
+<script>
+    // Variables globales para simular el estado
+    let usuario = {
+        nombreCompleto: "Karen Silva",
+        email: "karen.silva@dominio.com",
+        interesPrincipal: "Redes",
+        interesPrincipalDisplay: "Redes y Telecomunicaciones",
+        descripcion: "¡Estudiante apasionado por las redes!",
+        miembroDesde: "Marzo 2024", 
+        contribuciones: "18 dudas / 5 tutoriales" 
+    };
+
+    let notificacionesActivadas = true; 
+    let currentFilter = 'all'; 
+
+    const interesMap = {
+        "Redes": "Redes y Telecomunicaciones",
+        "Matematicas": "Matemáticas",
+        "SistemasDigitales": "Sistemas Digitales",
+    };
+
+    let notificaciones = [
+        { id: 1, tipo: 'duda', titulo: 'Sistema 3x3 por sustitución', texto: 'El usuario Carlos M. ha respondido tu duda.', leida: false, enlace: '#' },
+        { id: 2, tipo: 'tutorial', titulo: 'Introducción al Modelo OSI', texto: 'El autor Ana G. ha respondido tu comentario en el tutorial.', leida: false, enlace: '#' },
+        { id: 3, tipo: 'duda', titulo: 'Teorema de Stokes', texto: 'El usuario Soporte Cerebrain te ha respondido tu duda.', leida: false, enlace: '#' },
+        { id: 4, tipo: 'duda', titulo: 'Diferencia entre switch y hub', texto: 'Un experto ha comentado tu duda.', leida: true, enlace: '#' },
+    ];
+
+
+    /**********************
+     * FUNCIONES GENERALES 
+     **********************/
+    
+    function mostrarAlerta(mensaje, type = 'success', elementId = 'status-message-perfil') {
+        const status = document.getElementById(elementId);
+        if (status) {
+            status.textContent = mensaje;
+            status.className = `info ${type}`;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        } else {
+            console.log("ALERTA: " + mensaje);
+        }
+    }
+    
+    function cambiarVista(vistaId) {
+        document.querySelectorAll('.view-container').forEach(v => {
+            v.style.display = 'none';
+        });
+
+        const vista = document.getElementById(vistaId);
+        if (vista) {
+            vista.style.display = 'block';
+        }
+        
+        document.querySelectorAll('.main-grid').forEach(grid => {
+            grid.classList.remove('single-column');
+        });
+        if (vistaId === 'perfil-view' || vistaId === 'notificaciones-view') {
+            document.querySelector(`#${vistaId} .main-grid`).classList.add('single-column');
+        }
+
+        if (vistaId === 'perfil-view') {
+            cargarDatosLectura();
+            mostrarSubVistaPerfil('perfil-lectura');
+        } else if (vistaId === 'notificaciones-view') {
+            renderizarNotificaciones();
+        }
+
+        // Resalta el botón activo en la navegación
+        document.querySelectorAll('.nav button').forEach(btn => {
+            btn.classList.remove('activo');
+            // Resetear colores base
+            if (btn.id === 'home-btn') btn.style.backgroundColor = '#1e3a8a';
+            if (btn.id === 'notif-btn') btn.style.backgroundColor = '#ff9800';
+            if (btn.id === 'perfil-btn') btn.style.backgroundColor = '#48bb78';
+        });
+        
+        let activeBtn = null;
+        if (vistaId === 'home-view') {
+            activeBtn = document.getElementById('home-btn');
+            document.getElementById('home-btn').style.backgroundColor = '#3857a6'; // Color activo
+        } else if (vistaId === 'perfil-view') {
+            activeBtn = document.getElementById('perfil-btn');
+            document.getElementById('perfil-btn').style.backgroundColor = '#38a169'; // Color activo
+        } else if (vistaId === 'notificaciones-view') {
+            activeBtn = document.getElementById('notif-btn');
+            document.getElementById('notif-btn').style.backgroundColor = '#e68900'; // Color activo
+        }
+
+        if (activeBtn) {
+            activeBtn.classList.add('activo');
+        }
+    }
+
+
+    /**********************
+     * FUNCIONES DE PERFIL
+     **********************/
+
+    function mostrarSubVistaPerfil(subVistaId) {
+        const lectura = document.getElementById('perfil-lectura');
+        const edicion = document.getElementById('perfil-edicion');
+        
+        if (subVistaId === 'perfil-lectura') {
+            lectura.style.display = 'block';
+            edicion.style.display = 'none';
+            cargarDatosLectura();
+        } else if (subVistaId === 'perfil-edicion') {
+            lectura.style.display = 'none';
+            edicion.style.display = 'block';
+            cargarDatosFormulario();
+        }
+    }
+
+    function cargarDatosLectura() {
+        document.getElementById('perfil-nombre-display').textContent = usuario.nombreCompleto;
+        document.getElementById('perfil-desc-display').textContent = usuario.descripcion;
+        document.getElementById('info-nombre').textContent = usuario.nombreCompleto;
+        document.getElementById('info-email').textContent = usuario.email;
+        document.getElementById('info-interes').textContent = usuario.interesPrincipalDisplay;
+        document.getElementById('info-miembro').textContent = usuario.miembroDesde; 
+        document.getElementById('info-contribuciones').textContent = usuario.contribuciones; 
+    }
+    
+    function cargarDatosFormulario() {
+        if (document.getElementById('profile-form')) {
+            document.getElementById('nombreCompleto').value = usuario.nombreCompleto;
+            document.getElementById('email').value = usuario.email;
+            document.getElementById('interesPrincipal').value = usuario.interesPrincipal;
+            document.getElementById('descripcion').value = usuario.descripcion;
+        }
+    }
+
+    function guardarPerfil() {
+        const nombre = document.getElementById('nombreCompleto').value;
+        const email = document.getElementById('email').value;
+        const interesCode = document.getElementById('interesPrincipal').value;
+        const desc = document.getElementById('descripcion').value;
+
+        usuario.nombreCompleto = nombre;
+        usuario.email = email;
+        usuario.interesPrincipal = interesCode;
+        usuario.interesPrincipalDisplay = interesMap[interesCode];
+        usuario.descripcion = desc;
+        
+        mostrarAlerta("¡Perfil actualizado con éxito!", 'success', 'status-message-perfil');
+
+        setTimeout(() => {
+            mostrarSubVistaPerfil('perfil-lectura');
+        }, 500);
+    }
+
+
+    /**********************
+     * FUNCIONES DE NOTIFICACIONES
+     **********************/
+
+    function toggleNotif(checkbox) {
+        notificacionesActivadas = checkbox.checked;
+        const mensaje = notificacionesActivadas 
+            ? 'Notificaciones de respuesta activadas.'
+            : 'Notificaciones de respuesta desactivadas.';
+        mostrarAlerta(mensaje, 'info', 'status-message-notif');
+    }
+
+    // Lógica para filtrar notificaciones (mantenida la omisión de alerta en 'all')
+    function filtrarNotificaciones(filter) {
+        currentFilter = filter;
+        renderizarNotificaciones();
+    }
+
+    function renderizarNotificaciones() {
+        const listContainer = document.getElementById('notif-list');
+        const badge = document.getElementById('notif-badge');
+        const countDisplay = document.getElementById('notif-count');
+        
+        const filteredNotifs = notificaciones.filter(n => currentFilter === 'all'); // Filtro 'all' simple
+
+        const noLeidas = notificaciones.filter(n => !n.leida).length;
+        
+        countDisplay.textContent = noLeidas;
+        badge.textContent = noLeidas;
+        badge.style.display = noLeidas > 0 ? 'inline-block' : 'none';
+
+        listContainer.innerHTML = ''; 
+        
+        if (filteredNotifs.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#718096; padding:30px; background:#f0f4f8; border-radius:8px;">No hay notificaciones para este filtro.</p>';
+            return;
+        }
+
+        filteredNotifs.forEach(notif => {
+            const icon = notif.tipo === 'duda' ? 'fas fa-question-circle' : 'fas fa-book-open';
+            const itemClass = notif.leida ? 'notification-item' : 'notification-item unread';
+            
+            // Reemplazar asteriscos por <b> para negritas en el texto
+            const formattedText = notif.texto.replace(/\(.?)\*/g, '<b>$1</b>');
+
+            const itemHTML = `
+                <div class="${itemClass}" onclick="marcarLeida(${notif.id})">
+                    <div class="notif-icon" style="color: ${notif.leida ? '#4299e1' : '#ff9800'};"><i class="${icon}"></i></div>
+                    <div class="notif-content">
+                        <strong>${notif.titulo}</strong>
+                        <p>${formattedText}</p>
+                        <span>Hace 5 minutos - <a href="${notif.enlace}" onclick="event.stopPropagation();">Ver respuesta</a></span>
+                    </div>
+                </div>
+            `;
+            listContainer.innerHTML += itemHTML;
+        });
+
+        document.getElementById('toggleNotificaciones').checked = notificacionesActivadas;
+    }
+
+    function marcarLeida(id) {
+        const notif = notificaciones.find(n => n.id === id);
+        if (notif && !notif.leida) {
+            notif.leida = true;
+            renderizarNotificaciones();
+        }
+    }
+
+    function marcarTodasLeidas() {
+        let huboCambios = false;
+        notificaciones.forEach(n => {
+            if (!n.leida) {
+                n.leida = true;
+                huboCambios = true;
+            }
+        });
+        if (huboCambios) {
+            renderizarNotificaciones();
+            mostrarAlerta('Todas las notificaciones han sido marcadas como leídas.', 'info', 'status-message-notif');
+        } else {
+            mostrarAlerta('No hay notificaciones no leídas para marcar.', 'info', 'status-message-notif');
+        }
+    }
+
+
+    /**********************
+     * INICIALIZACIÓN
+     **********************/
+    document.addEventListener('DOMContentLoaded', function() {
+        // La vista 'home-view' ya se muestra por CSS
+        renderizarNotificaciones();
+        // Asegura que el botón 'Inicio' esté marcado como activo al cargar
+        document.getElementById('home-btn').classList.add('activo');
+    });
+
+</script>
+
+</body>
+</html>

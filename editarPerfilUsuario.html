@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CEREBRAIN - Fase 4 (Perfil con Visualización y Edición)</title>
+    <style>
+        /* [ESTILOS GLOBALES Y ESTRUCTURA BASE] */
+        body { font-family: Arial, sans-serif; margin: 0; background: #f2f5ff; }
+        /* Ajuste de contenedor para que las sub-vistas (perfil-lectura/edicion) se muestren correctamente */
+        .view-container { display: none; max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        header { background: white; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+        .nav { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; padding: 0 15px; }
+        .brand { font-weight: bold; color: #1e3a8a; font-size: 24px; display: flex; align-items: center; cursor: pointer; }
+        .brand img { width: 30px; margin-right: 8px; }
+
+        /* Estilos para los botones de navegación */
+        .nav button { 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            margin-left: 10px; 
+            font-weight: bold; 
+            transition: background 0.3s; 
+            cursor: default; /* Por defecto, estático */
+        }
+        
+        /* Estilos específicos de botones */
+        .nav button.primary { background: #1e3a8a; }
+        .nav button.primary:hover { background: #3857a6; }
+        .nav button.notifications {background: #f59e0b;}
+        .nav button.notifications:hover {background: #d97706;}
+        .nav button.logout {background: #ef4444;}
+        .nav button.logout:hover {background: #b91c1c;}
+        .nav button#perfil-btn {background: #22c55e;}
+        .nav button#perfil-btn:hover {background: #16a34a;}
+
+        
+        /* Layout Grid para la vista HOME (2 columnas) */
+        .main-grid { 
+            display: grid; 
+            grid-template-columns: 220px 1fr; 
+            gap: 20px; 
+        } 
+        .aside, .section { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        }
+
+        /* HOME: Estilos de Navegación Rápida y Tarjetas */
+        .area button { display: block; width: 100%; margin-bottom: 8px; padding: 10px; cursor: default; border: 1px solid #ddd; background: #fff; border-radius: 6px; text-align: left; font-weight: 500; }
+        .area button:hover { background: #eef2ff; border-color: #cdd5f3; }
+        .card { border: 1px solid #eee; padding: 15px; border-radius: 8px; margin-bottom: 15px; cursor: default; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: #1e3a8a; }
+        .card p { margin: 0 0 10px 0; font-size: 0.9rem; color: #666; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #999; margin-top: 10px; }
+        .card.tutorial-destacado { border-left: 5px solid #3f51b5; } 
+        .tag { background: #eef2ff; color: #1e3a8a; padding: 3px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px; display: inline-block; margin-top: 5px;}
+
+        /* PERFIL: Estilos de la Vista de Perfil General */
+        .profile-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center;
+        }
+        .profile-card { 
+            max-width: 600px; 
+            width: 100%;
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .avatar { 
+            width: 120px; 
+            height: 120px; 
+            border-radius: 50%; 
+            background: #cbd5e0; 
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 4px solid #1e3a8a;
+        }
+        .profile-card h2 { color: #1e3a8a; margin-top: 0; }
+        
+        /* Estilos de Lectura */
+        .profile-info { text-align: left; width: 100%; margin-bottom: 20px; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: bold; color: #4a5568; }
+        .info-value { color: #2d3748; }
+
+        /* Estilos de Edición (Formulario) */
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        /* Botones de acción */
+        .action-btn {
+            color: white; 
+            border: none; 
+            padding: 12px 25px; 
+            border-radius: 6px; 
+            margin-top: 20px; 
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 10px;
+        }
+        .edit-btn { background: #4299e1; } /* Azul para Editar */
+        .edit-btn:hover { background: #3182ce; }
+        .save-btn { background: #2f855a; } /* Verde para Guardar */
+        .save-btn:hover { background: #38a169; }
+        .cancel-btn { background: #718096; } /* Gris para Cancelar */
+        .cancel-btn:hover { background: #4a5568; }
+
+        /* Estilo para el mensaje de éxito */
+        #status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        footer { margin-top: 30px; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<div id="app-container">
+    <header id="main-header">
+        <div class="nav">
+            <div class="brand" onclick="cambiarVista('home-view')">
+                <!-- Logo cerebro.png -->
+                <img src="cerebro.png" alt="Cerebrain Logo">
+                CEREBRAIN
+            </div>
+            <div>
+                <!-- Botón de Inicio: ACTIVO -->
+                <button id="home-btn" class="primary" onclick="cambiarVista('home-view')">Inicio</button>
+                <!-- Botón de Notificaciones: Estático -->
+                <button class="notifications" onclick="mostrarAlerta('Funcionalidad de Notificaciones no implementada aún.')">Notificaciones</button>
+                <!-- Botones Estáticos -->
+                <button class="primary" onclick="mostrarAlerta('Botón deshabilitado para el ticket actual.')">Dudas</button>
+                <button class="primary" onclick="mostrarAlerta('Botón deshabilitado para el ticket actual.')">Tutoriales</button>
+                <!-- Botón de Perfil: ACTIVO (Ahora con edición) -->
+                <button id="perfil-btn" class="primary" onclick="cambiarVista('perfil-view')">Perfil</button>
+                <!-- Botón de Cerrar Sesión: Estático -->
+                <button class="logout" onclick="cerrarSesion()">Cerrar sesión</button></div>
+        </div>
+    </header>
+
+    <!-- ************ -->
+    <!-- 1. VISTA DE INICIO (HOME)  -->
+    <!-- ************ -->
+    <div id="home-view" class="view-container" style="display: block;">
+        <div class="main-grid">
+            
+            <!-- Columna Izquierda: Navegación Rápida -->
+            <aside class="aside">
+                <h3>Navegación Rápida</h3>
+                <div class="area">
+                    <!-- Botones Estáticos -->
+                    <button onclick="mostrarAlerta('Funcionalidad de navegación rápida no activa.')">Ir a Foro de Dudas</button>
+                    <button onclick="mostrarAlerta('Funcionalidad de navegación rápida no activa.')">Ver Tutoriales</button>
+                </div>
+            </aside>
+            
+            <!-- Columna Central: Tablero de Inicio -->
+            <section class="section">
+                <h2>Tablero de Inicio</h2>
+                <p>Bienvenido. Usa la barra de navegación para saltar entre las secciones.</p>
+
+                <h3 style="color:#1e3a8a;">Últimas Dudas (Fase 3)</h3>
+                <div class="card">
+                    <!-- Contenido detallado de la duda -->
+                    <h3>¿Cómo resolver un sistema 3x3 por sustitución?</h3>
+                    <p>Estoy atascado en el paso de despeje de la tercera variable. Intenté despejar z de la tercera ecuación, pero al sustituir en las otras dos, las expresiones se vuelven demasiado complejas. ¿Existe alguna forma más sencilla de abordar este problema con el método de sustitución, o es mejor cambiar a otro método como Gauss? Necesito un ejemplo o un consejo para simplificar los pasos.</p>
+                    
+                    <div>
+                        <span class="tag">álgebra</span>
+                        <span class="tag">ecuaciones</span>
+                    </div>
+
+                    <div class="card-footer"><span>Matemáticas</span> <span>12 Respuestas</span></div>
+                </div>
+
+                <h3 style="color:#3f51b5;">Tutorial Destacado (Fase 4)</h3>
+                <div class="card tutorial-destacado">
+                    <h3>📺 Introducción al Modelo OSI</h3>
+                    <p>Comprende la arquitectura de red capa por capa.</p>
+                    <div class="card-footer"><span>Redes</span> <span>30 min</span></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ************ -->
+    <!-- 2. VISTA DE PERFIL (CONTENEDOR PRINCIPAL) -->
+    <!-- ************ -->
+    <div id="perfil-view" class="view-container">
+        <div class="profile-container">
+            <div class="profile-card">
+                
+                <!-- Sub-Vista 2.1: LECTURA / VISUALIZACIÓN -->
+                <div id="perfil-lectura">
+                    <div class="avatar"><i class="fas fa-user"></i></div>
+                    <h2 id="perfil-nombre-display">Nombre de Usuario</h2>
+                    <p id="perfil-desc-display" style="color: #718096; margin-bottom: 30px;">¡Estudiante apasionado por las redes!</p>
+
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">Nombre Completo:</span>
+                            <span class="info-value" id="info-nombre">Karen Silva</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Correo Electrónico:</span>
+                            <span class="info-value" id="info-email">karen_silva@dominio.com</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Área de Interés Principal:</span>
+                            <span class="info-value" id="info-interes">Redes y Telecomunicaciones</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Miembro desde:</span>
+                            <span class="info-value">Marzo 2024</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Total de Contribuciones:</span>
+                            <span class="info-value">18 dudas / 5 tutoriales</span>
+                        </div>
+                    </div>
+
+                    <button class="action-btn edit-btn" onclick="mostrarVista('perfil-edicion')">
+                        <i class="fas fa-edit"></i> Editar Perfil
+                    </button>
+                </div>
+
+                <!-- Sub-Vista 2.2: EDICIÓN / FORMULARIO -->
+                <div id="perfil-edicion" style="display: none;">
+                    <div class="avatar"><i class="fas fa-user-edit"></i></div>
+                    <h2>Editar Perfil de Usuario</h2>
+                    <p style="color: #718096; margin-bottom: 30px;">Actualiza tu información personal y tus áreas de interés.</p>
+
+                    <form id="profile-form" onsubmit="event.preventDefault(); guardarPerfil();">
+                        
+                        <div class="form-group">
+                            <label for="nombreCompleto">Nombre Completo:</label>
+                            <input type="text" id="nombreCompleto" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico:</label>
+                            <input type="email" id="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="interesPrincipal">Área de Interés Principal:</label>
+                            <select id="interesPrincipal" required>
+                                <option value="Redes">Redes y Telecomunicaciones</option>
+                                <option value="Matematicas">Matemáticas</option>
+                                <option value="SistemasDigitales">Sistemas Digitales</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="descripcion">Descripción Breve:</label>
+                            <input type="text" id="descripcion">
+                        </div>
+
+                        <!-- Botones de acción del formulario -->
+                        <button type="submit" class="action-btn save-btn">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <button type="button" class="action-btn cancel-btn" onclick="mostrarVista('perfil-lectura')">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        
+                        <div id="status-message" class="success"></div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<footer>
+    <p style="text-align:center; padding:20px; font-size:14px; color:#666; margin-top:20px;">CEREBRAIN 2025 </p>
+</footer>
+
+<script>
+    // Variable global para simular el estado del usuario
+    let usuario = {
+        nombreCompleto: "Karen Silva",
+        email: "karen.silva@dominio.com",
+        interesPrincipal: "Redes",
+        interesPrincipalDisplay: "Redes y Telecomunicaciones",
+        descripcion: "¡Estudiante apasionado por las redes!"
+    };
+
+    // Mapeo para mostrar el nombre completo del interés en la vista de lectura
+    const interesMap = {
+        "Redes": "Redes y Telecomunicaciones",
+        "Matematicas": "Matemáticas",
+        "SistemasDigitales": "Sistemas Digitales"
+    };
+
+
+    /* Función para simular una alerta*/
+    function mostrarAlerta(mensaje, tipo = 'success') {
+        // Si ya existe una alerta previa, la eliminamos para no duplicar
+        const alertaExistente = document.getElementById('alerta-global');
+        if (alertaExistente) {
+            alertaExistente.remove();
+        }
+
+        // Crear la alerta visual
+        const alerta = document.createElement('div');
+        alerta.id = 'alerta-global';
+        alerta.textContent = mensaje;
+
+        // Asignar estilo según el tipo
+        let colorFondo = '#4CAF50'; // verde por defecto
+        if (tipo === 'warning') colorFondo = '#ff9800';
+        if (tipo === 'error') colorFondo = '#f44336';
+
+        // Estilo visual (flotante y centrado)
+        Object.assign(alerta.style, {
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: colorFondo,
+            color: '#fff',
+            padding: '12px 25px',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            zIndex: '9999',
+            boxShadow: '0 3px 6px rgba(0,0,0,0.3)',
+            transition: 'opacity 0.3s ease',
+            opacity: '1'
+        });
+
+        // Agregar al documento
+        document.body.appendChild(alerta);
+
+        // Ocultar suavemente después de 2.5 segundos
+        setTimeout(() => {
+            alerta.style.opacity = '0';
+            setTimeout(() => alerta.remove(), 300);
+        }, 2500);
+    }
+
+    
+    /**
+     * Alterna entre las vistas principales (Home y Perfil).
+     *  El ID de la vista principal a mostrar ('home-view' o 'perfil-view').
+     */
+    function cambiarVista(vistaId) {
+        // Oculta todas las vistas principales
+        document.querySelectorAll('.view-container').forEach(v => {
+            v.style.display = 'none';
+        });
+
+        // Muestra la vista principal solicitada
+        const vista = document.getElementById(vistaId);
+        if (vista) {
+            vista.style.display = 'block';
+        }
+
+        // Si se navega a Perfil, muestra por defecto la vista de LECTURA
+        if (vistaId === 'perfil-view') {
+            cargarDatosLectura();
+            mostrarVista('perfil-lectura');
+        }
+
+        // Restablece colores a los botones principales
+        document.getElementById('home-btn').style.backgroundColor = '#1e3a8a'; // Azul normal
+        document.getElementById('perfil-btn').style.backgroundColor = '#22c55e'; // Verde fijo
+
+        // Resalta solo el botón activo
+        if (vistaId === 'home-view') {
+            document.getElementById('home-btn').style.backgroundColor = '#3857a6';
+        }
+    }
+    /**
+     * Alterna entre las sub-vistas de Perfil (Lectura o Edición).
+     *  - 'perfil-lectura' o 'perfil-edicion'.
+     */
+    function mostrarVista(subVistaId) {
+        const lectura = document.getElementById('perfil-lectura');
+        const edicion = document.getElementById('perfil-edicion');
+        
+        if (subVistaId === 'perfil-lectura') {
+            // Muestra Lectura, oculta Edición, y actualiza los datos
+            lectura.style.display = 'block';
+            edicion.style.display = 'none';
+            cargarDatosLectura();
+        } else if (subVistaId === 'perfil-edicion') {
+            // Muestra Edición, oculta Lectura, y precarga el formulario
+            lectura.style.display = 'none';
+            edicion.style.display = 'block';
+            cargarDatosFormulario();
+        }
+    }
+
+    /**
+     * Carga los datos simulados del objeto 'usuario' en la vista de LECTURA.
+     */
+    function cargarDatosLectura() {
+        document.getElementById('perfil-nombre-display').textContent = usuario.nombreCompleto;
+        document.getElementById('perfil-desc-display').textContent = usuario.descripcion;
+        document.getElementById('info-nombre').textContent = usuario.nombreCompleto;
+        document.getElementById('info-email').textContent = usuario.email;
+        document.getElementById('info-interes').textContent = usuario.interesPrincipalDisplay;
+    }
+    
+    /**
+     * Carga los datos simulados del objeto 'usuario' en el FORMULARIO de edición.
+     */
+    function cargarDatosFormulario() {
+        if (document.getElementById('profile-form')) {
+            document.getElementById('nombreCompleto').value = usuario.nombreCompleto;
+            document.getElementById('email').value = usuario.email;
+            document.getElementById('interesPrincipal').value = usuario.interesPrincipal;
+            document.getElementById('descripcion').value = usuario.descripcion;
+        }
+    }
+
+    /**
+     * Simula la lógica para guardar los datos del perfil, actualiza el estado y vuelve a la vista de lectura.
+     */
+    function guardarPerfil() {
+        const nombre = document.getElementById('nombreCompleto').value;
+        const email = document.getElementById('email').value;
+        const interesCode = document.getElementById('interesPrincipal').value;
+        const desc = document.getElementById('descripcion').value;
+
+        // 1. Actualizar la variable de estado simulada
+        usuario.nombreCompleto = nombre;
+        usuario.email = email;
+        usuario.interesPrincipal = interesCode;
+        usuario.interesPrincipalDisplay = interesMap[interesCode]; // Obtiene el valor legible
+        usuario.descripcion = desc;
+        
+        // 2. Mostrar mensaje de éxito
+        mostrarAlerta("¡Perfil actualizado con éxito!");
+
+        // 3. Volver a la vista de lectura
+        // Usamos un pequeño timeout para que el usuario pueda ver el mensaje de éxito antes de cambiar
+        setTimeout(() => {
+            mostrarVista('perfil-lectura');
+        }, 500);
+    }
+
+    // Inicializa la aplicación mostrando la vista de inicio
+    document.addEventListener('DOMContentLoaded', function() {
+        cambiarVista('home-view');
+    });
+
+    function cerrarSesion() {
+        mostrarAlerta('Sesión cerrada con éxito', 'success');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 3000);
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CEREBRAIN - Fase 2 (Home y Perfil )</title>
+    <style>
+        /* [ESTILOS GLOBALES Y ESTRUCTURA BASE] */
+        body { font-family: Arial, sans-serif; margin: 0; background: #f2f5ff; }
+        .view-container { display: none; max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        header { background: white; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+        .nav { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; padding: 0 15px; }
+        .brand { font-weight: bold; color: #1e3a8a; font-size: 24px; display: flex; align-items: center; cursor: pointer; }
+        .brand img { width: 30px; margin-right: 8px; }
+
+        /* Estilos para los botones de navegación */
+        .nav button { 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            margin-left: 10px; 
+            font-weight: bold; 
+            transition: background 0.3s; 
+            cursor: default; /* Por defecto, estático */
+        }
+        
+        /* Estilos específicos de botones */
+        .nav button.primary { background: #1e3a8a; }
+        .nav button.primary:hover { background: #3857a6; }
+        .nav button.logout { background: #e53e3e; } 
+        .nav button.logout:hover { background: #c53030; }
+        .nav button.notifications { background: #ff9800; } 
+        .nav button.notifications:hover { background: #e68900; }
+        
+        /* El único botón funcional para este ticket: PERFIL */
+        .nav button#perfil-btn { cursor: pointer; background: #2f855a; }
+        .nav button#perfil-btn:hover { background: #38a169; }
+
+        /* Layout Grid para la vista HOME (2 columnas) */
+        .main-grid { 
+            display: grid; 
+            grid-template-columns: 220px 1fr; 
+            gap: 20px; 
+        } 
+        .aside, .section { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        }
+
+        /* HOME: Estilos de Navegación Rápida y Tarjetas */
+        .area button { display: block; width: 100%; margin-bottom: 8px; padding: 10px; cursor: default; border: 1px solid #ddd; background: #fff; border-radius: 6px; text-align: left; font-weight: 500; }
+        .area button:hover { background: #eef2ff; border-color: #cdd5f3; }
+        .card { border: 1px solid #eee; padding: 15px; border-radius: 8px; margin-bottom: 15px; cursor: default; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: #1e3a8a; }
+        .card p { margin: 0 0 10px 0; font-size: 0.9rem; color: #666; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #999; margin-top: 10px; }
+        .card.tutorial-destacado { border-left: 5px solid #3f51b5; } 
+        .tag { background: #eef2ff; color: #1e3a8a; padding: 3px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px; display: inline-block; margin-top: 5px;}
+
+        /* PERFIL: Estilos de la Vista de Perfil */
+        .profile-container { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center;
+        }
+        .profile-card { 
+            max-width: 600px; 
+            width: 100%;
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .avatar { 
+            width: 120px; 
+            height: 120px; 
+            border-radius: 50%; 
+            background: #cbd5e0; /* Placeholder color */
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 4px solid #1e3a8a;
+        }
+        .profile-card h2 { color: #1e3a8a; margin-top: 0; }
+        .profile-info { text-align: left; width: 100%; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: bold; color: #4a5568; }
+        .info-value { color: #2d3748; }
+
+        .edit-btn {
+            background: #4299e1; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            margin-top: 20px; 
+            font-weight: bold;
+            cursor: default; /* ESTÁTICO por solicitud */
+        }
+        .edit-btn:hover { background: #3182ce; }
+
+
+        footer { margin-top: 30px; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<div id="app-container">
+    <header id="main-header">
+        <div class="nav">
+            <div class="brand" onclick="cambiarVista('home-view')">
+                <!-- Logo cerebro.png -->
+                <img src="cerebro.png" alt="Cerebrain Logo">
+                CEREBRAIN
+            </div>
+            <div>
+                <!-- Botón de Inicio: Estático -->
+                <button class="primary" onclick="cambiarVista('home-view')">Inicio</button>
+                <!-- Botón de Notificaciones: Estático -->
+                <button class="notifications" onclick="alert('Funcionalidad de Notificaciones no implementada en este ticket')">Notificaciones</button>
+                <!-- Botones Estáticos -->
+                <button class="primary" onclick="alert('Botón deshabilitado para el ticket 2')">Dudas</button>
+                <button class="primary" onclick="alert('Botón deshabilitado para el ticket 2')">Tutoriales</button>
+                <!-- Botón de Perfil: ACTIVO (única funcionalidad) -->
+                <button id="perfil-btn" onclick="cambiarVista('perfil-view')">Perfil</button>
+                <!-- Botón de Cerrar Sesión: Estático -->
+                <button class="logout" onclick="alert('Simulación: Sesión cerrada.')">Cerrar sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ************ -->
+    <!-- 1. VISTA DE INICIO (HOME)  -->
+    <!-- ************ -->
+    <div id="home-view" class="view-container" style="display: block;">
+        <div class="main-grid">
+            
+            <!-- Columna Izquierda: Navegación Rápida -->
+            <aside class="aside">
+                <h3>Navegación Rápida</h3>
+                <div class="area">
+                    <!-- Botones Estáticos -->
+                    <button>Ir a Foro de Dudas</button>
+                    <button>Ver Tutoriales</button>
+                </div>
+            </aside>
+            
+            <!-- Columna Central: Tablero de Inicio -->
+            <section class="section">
+                <h2>Tablero de Inicio</h2>
+                <p>Bienvenido. Usa la barra de navegación para saltar entre las secciones.</p>
+
+                <h3 style="color:#1e3a8a;">Últimas Dudas </h3>
+                <div class="card">
+                    <!-- Contenido detallado de la duda-->
+                    <h3>¿Cómo resolver un sistema 3x3 por sustitución?</h3>
+                    <p>Estoy atascado en el paso de despeje de la tercera variable. Intenté despejar z de la tercera ecuación, pero al sustituir en las otras dos, las expresiones se vuelven demasiado complejas. ¿Existe alguna forma más sencilla de abordar este problema con el método de sustitución, o es mejor cambiar a otro método como Gauss? Necesito un ejemplo o un consejo para simplificar los pasos.</p>
+                    
+                    <div>
+                        <span class="tag">álgebra</span>
+                        <span class="tag">ecuaciones</span>
+                    </div>
+
+                    <div class="card-footer"><span>Matemáticas</span> <span>12 Respuestas</span></div>
+                </div>
+
+                <h3 style="color:#3f51b5;">Tutorial Destacado</h3>
+                <div class="card tutorial-destacado">
+                    <h3>📺 Introducción al Modelo OSI</h3>
+                    <p>Comprende la arquitectura de red capa por capa.</p>
+                    <div class="card-footer"><span>Redes</span> <span>30 min</span></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- ************ -->
+    <!-- 2. VISTA DE PERFIL (TICKET 2) -->
+    <!-- ************ -->
+    <div id="perfil-view" class="view-container" style="display: none;">
+        <div class="profile-container">
+            <div class="profile-card">
+                <div class="avatar"><i class="fas fa-user"></i></div>
+                <h2>Nombre de Usuario</h2>
+                <p style="color: #718096; margin-bottom: 30px;">¡Estudiante apasionado por las redes!</p>
+
+                <div class="profile-info">
+                    <div class="info-row">
+                        <span class="info-label">Nombre Completo:</span>
+                        <span class="info-value">Karen Silva</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Correo Electrónico:</span>
+                        <span class="info-value">karen.silva@dominio.com</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Área de Interés Principal:</span>
+                        <span class="info-value">Redes y Telecomunicaciones</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Miembro desde:</span>
+                        <span class="info-value">Marzo 2024</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Total de Contribuciones:</span>
+                        <span class="info-value">18 dudas / 5 tutoriales</span>
+                    </div>
+                </div>
+
+                <!-- Botón de edición: Estático por solicitud del ticket (no editable aún) -->
+                <button class="edit-btn" onclick="alert('Funcionalidad de Edición de Perfil no implementada en este ticket')">
+                    <i class="fas fa-edit"></i> Editar Perfil (Fase Pendiente)
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<footer>
+    <p style="text-align:center; padding:20px; font-size:14px; color:#666; margin-top:20px;">CEREBRAIN 2025</p>
+</footer>
+
+<script>
+    /**
+     * Función para cambiar entre las vistas de la aplicación.
+     * El ID de la vista a mostrar ('home-view' o 'perfil-view').
+     */
+    function cambiarVista(vistaId) {
+        // Oculta todas las vistas
+        document.querySelectorAll('.view-container').forEach(v => {
+            v.style.display = 'none';
+        });
+
+        // Muestra la vista solicitada
+        const vista = document.getElementById(vistaId);
+        if (vista) {
+            vista.style.display = 'block';
+        }
+
+        // Actualiza el estado de los botones de navegación (solo visual)
+        document.querySelectorAll('.nav button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Marca el botón activo.
+        if (vistaId === 'home-view') {
+            document.querySelector('.nav button:nth-child(1)').classList.add('active'); // Inicio
+        } else if (vistaId === 'perfil-view') {
+            document.getElementById('perfil-btn').classList.add('active'); // Perfil
+        }
+    }
+
+    // Inicializa la aplicación mostrando la vista de inicio
+    document.addEventListener('DOMContentLoaded', function() {
+        cambiarVista('home-view');
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CEREBRAIN </title>
+    <style>
+        /* [ESTILOS GLOBALES Y ESTRUCTURA BASE] */
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f2f5ff; }
+        .view-container { display: none; max-width: 1000px; margin: 20px auto; padding: 0 15px; }
+        #home-view { display: block; } /* Mostrar Home por defecto */
+
+        header { background: white; padding: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 10; }
+        .nav { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; padding: 0 15px; }
+        .brand { font-weight: bold; color: #1e3a8a; font-size: 24px; display: flex; align-items: center; cursor: default; }
+        /* Usamos un span simple como logo para mantener la estructura sin una imagen externa */
+        .brand .logo { width: 30px; height: 30px; background-color: #1e3a8a; border-radius: 5px; margin-right: 8px; display: inline-block; } 
+
+        /* ESTILOS DE BOTONES DE NAVEGACIÓN  */
+        .nav button { 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            margin-left: 10px; 
+            font-weight: bold; 
+            transition: background 0.3s; 
+            cursor: pointer; /* Lo hacemos clickeable */
+        }
+        
+        /* Botones de Navegación principal (Inicio, Dudas, Tutoriales) */
+        .nav button.primary { background: #1e3a8a; } 
+        .nav button.primary:hover { background: #3857a6; }
+        
+        /* Botón Activo (Inicio) */
+        .nav button.activo { background: #3857a6 !important; }
+
+        /* Notificaciones (Naranja) */
+        .nav button.notifications { background: #ff9800; }
+        .nav button.notifications:hover { background: #e68900; }
+
+        /* Perfil (Verde) */
+        .nav button#perfil-btn { background: #48bb78; }
+        .nav button#perfil-btn:hover { background: #38a169; }
+
+        /* Cerrar Sesión (Rojo) */
+        .nav button.logout { background: #e53e3e; }
+        .nav button.logout:hover { background: #c53030; }
+
+
+        /* HOME LAYOUT */
+        .main-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; } 
+        .aside, .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* ASIDE: Navegación Rápida */
+        .aside h3 { margin-top: 0; color: #1e3a8a; font-size: 1.2rem; }
+        .area button { display: block; width: 100%; margin-bottom: 8px; padding: 10px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 6px; text-align: left; font-weight: 500; transition: background 0.2s; color: #4a5568;}
+        .area button:hover { background: #eef2ff; border-color: #cdd5f3; }
+        
+
+        /* SECCIÓN PRINCIPAL: Tablero */
+        .section h2 { color: #2d3748; margin-top: 0; }
+        .section h3 { color: #1e3a8a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;}
+
+        /* ESTILOS DE TARJETAS */
+        .card { 
+            border: 1px solid #eee; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            cursor: default; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            background: #fff;
+        }
+        .card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: #1e3a8a; border-bottom: none; padding-bottom: 0;}
+        .card p { margin: 0 0 10px 0; font-size: 0.95rem; color: #4a5568; }
+        
+        /* Estilos Específicos de Tarjeta Duda (con borde azul) */
+        .duda-card {
+             border-left: 4px solid #4299e1; 
+             padding-left: 11px; /* Ajuste para compensar el borde */
+        }
+        .duda-card h3 {
+             color: #1e3a8a; 
+        }
+        .duda-card .tags { margin-bottom: 8px; }
+
+        /* Estilos Específicos de Tarjeta Tutorial (con borde morado/azul) */
+        .tutorial-card {
+             border-left: 4px solid #3f51b5;
+             padding-left: 11px;
+        }
+        .tutorial-card h3 {
+             color: #3f51b5; 
+        }
+
+        /* Estilos para los Tags */
+        .tag { 
+            background: #eef2ff; 
+            color: #1e3a8a; 
+            padding: 3px 8px; 
+            border-radius: 12px; 
+            font-size: 12px; 
+            margin-right: 5px; 
+            display: inline-block; 
+            margin-top: 5px;
+        }
+
+        /* Estilos para el pie de la tarjeta */
+        .card-meta { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 0.85rem; 
+            color: #718096; 
+            margin-top: 10px; 
+            padding-top: 5px;
+        }
+        
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<div id="app-container">
+    <header id="main-header">
+        <div class="nav">
+            <div class="brand">
+                <span class="logo"></span> 
+                CEREBRAIN
+            </div>
+            <div>
+                <button onclick="cambiarVista('home')" class="primary activo">Inicio</button> 
+                
+                <button onclick="alert('Funcionalidad de Notificaciones no implementada en este ticket')" class="notifications">Notificaciones</button>
+                
+                <button onclick="alert('Botón deshabilitado para el ticket HOME')" class="primary">Dudas</button>
+                
+                <button onclick="alert('Botón deshabilitado para el ticket HOME')" class="primary">Tutoriales</button>
+                
+                <button id="perfil-btn" onclick="alert('Botón deshabilitado para el ticket HOME')">Perfil</button>
+                
+                <button onclick="alert('Simulación: Sesión cerrada.')" class="logout">Cerrar sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <div id="home-view" class="view-container">
+        <div class="main-grid">
+            <aside class="aside">
+                <h3>Navegación Rápida</h3>
+                <div class="area">
+                    <button onclick="alert('Función deshabilitada para este ticket.')">Ir a Foro de Dudas</button>
+                    <button onclick="alert('Función deshabilitada para este ticket.')">Ver Tutoriales</button>
+                </div>
+            </aside>
+            <section class="section">
+                <h2>Tablero de Inicio</h2>
+                <p>Bienvenido. Usa la barra de navegación para saltar entre las secciones.</p>
+
+                <h3 style="color:#1e3a8a;">Últimas Dudas </h3>
+                <div class="card duda-card">
+                    <h3>¿Cómo resolver un sistema 3x3 por sustitución?</h3>
+                    <p>Estoy atascado en el paso de despeje de la tercera variable. Intenté despejar z de la tercera ecuación, pero al sustituir en las otras dos, las expresiones se vuelven demasiado complejas. ¿Existe alguna forma más sencilla de abordar este problema con el método de sustitución, o es mejor cambiar a otro método como Gauss? Necesito un ejemplo o un consejo para simplificar los pasos.</p>
+                    <div class="tags">
+                        <span class="tag">álgebra</span>
+                        <span class="tag">ecuaciones</span>
+                    </div>
+                    <div class="card-meta">
+                        <span>Matemáticas</span> 
+                        <span>12 Respuestas</span>
+                    </div>
+                </div>
+
+                <h3 style="color:#3f51b5;">Tutorial Destacado</h3>
+                <div class="card tutorial-card">
+                    <h3><i class="fas fa-video"></i> Introducción al Modelo OSI</h3>
+                    <p>Comprende la arquitectura de red capa por capa.</p>
+                    <div class="card-meta">
+                        <span>Redes</span> 
+                        <span>30 min</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p style="text-align:center; padding:20px; font-size:14px; color:#666; margin-top:20px;"> CEREBRAIN 2025 </p>
+</footer>
+
+<script>
+    /**
+     * Función simple para simular el cambio de vista, manteniendo el HOME visible.
+     * En este ticket, los otros botones solo muestran alertas.
+     */
+    function cambiarVista(vistaId) {
+        if (vistaId === 'home') {
+            document.getElementById('home-view').style.display = 'block';
+        } else {
+            // En este ticket, permite asumir que solo existe 'home-view'
+            // y que los demás botones simplemente lanzan un alert.
+        }
+    }
+</script>
+
+</body>
+</html>
