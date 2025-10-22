@@ -466,22 +466,22 @@
     };
 
     let notificaciones = [
-        { id: 1, tipo: 'duda', titulo: 'Sistema 3x3 por sustitución', texto: 'El usuario Carlos M. ha respondido tu duda.', leida: false, enlace: '#' },
-        { id: 2, tipo: 'tutorial', titulo: 'Introducción al Modelo OSI', texto: 'El autor Ana G. ha respondido tu comentario en el tutorial.', leida: false, enlace: '#' },
-        { id: 3, tipo: 'duda', titulo: 'Teorema de Stokes', texto: 'El usuario Soporte Cerebrain te ha respondido tu duda.', leida: false, enlace: '#' },
+        { id: 1, tipo: 'duda', titulo: 'Sistema 3x3 por sustitución', texto: 'El usuario *Carlos M.* ha respondido tu duda.', leida: false, enlace: '#' },
+        { id: 2, tipo: 'tutorial', titulo: 'Introducción al Modelo OSI', texto: 'El autor *Ana G.* ha respondido tu comentario en el tutorial.', leida: false, enlace: '#' },
+        { id: 3, tipo: 'duda', titulo: 'Teorema de Stokes', texto: 'El usuario *Soporte Cerebrain* te ha respondido tu duda.', leida: false, enlace: '#' },
         { id: 4, tipo: 'duda', titulo: 'Diferencia entre switch y hub', texto: 'Un experto ha comentado tu duda.', leida: true, enlace: '#' },
     ];
 
 
-    /**********************
+    /****************************************************************
      * FUNCIONES GENERALES 
-     **********************/
+     ****************************************************************/
     
     function mostrarAlerta(mensaje, type = 'success', elementId = 'status-message-perfil') {
         const status = document.getElementById(elementId);
         if (status) {
             status.textContent = mensaje;
-            status.className = `info ${type}`;
+            status.className = `info ${type}`; 
             status.style.display = 'block';
             setTimeout(() => {
                 status.style.display = 'none';
@@ -542,9 +542,9 @@
     }
 
 
-    /**********************
+    /****************************************************************
      * FUNCIONES DE PERFIL
-     **********************/
+     ****************************************************************/
 
     function mostrarSubVistaPerfil(subVistaId) {
         const lectura = document.getElementById('perfil-lectura');
@@ -592,7 +592,7 @@
         usuario.interesPrincipalDisplay = interesMap[interesCode];
         usuario.descripcion = desc;
         
-        mostrarAlerta("¡Perfil actualizado con éxito!", 'success', 'status-message-perfil');
+        mostrarAlerta(`¡Perfil actualizado con éxito!`, 'success', 'status-message-perfil');
 
         setTimeout(() => {
             mostrarSubVistaPerfil('perfil-lectura');
@@ -600,9 +600,9 @@
     }
 
 
-    /**********************
+    /****************************************************************
      * FUNCIONES DE NOTIFICACIONES
-     **********************/
+     ****************************************************************/
 
     function toggleNotif(checkbox) {
         notificacionesActivadas = checkbox.checked;
@@ -643,7 +643,7 @@
             const itemClass = notif.leida ? 'notification-item' : 'notification-item unread';
             
             // Reemplazar asteriscos por <b> para negritas en el texto
-            const formattedText = notif.texto.replace(/\(.?)\*/g, '<b>$1</b>');
+            const formattedText = notif.texto.replace(/\*(.*?)\*/g, '<b>$1</b>');
 
             const itemHTML = `
                 <div class="${itemClass}" onclick="marcarLeida(${notif.id})">
@@ -686,9 +686,9 @@
     }
 
 
-    /**********************
+    /****************************************************************
      * INICIALIZACIÓN
-     **********************/
+     ****************************************************************/
     document.addEventListener('DOMContentLoaded', function() {
         // La vista 'home-view' ya se muestra por CSS
         renderizarNotificaciones();
