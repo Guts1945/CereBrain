@@ -537,7 +537,7 @@
         const status = document.getElementById(elementId);
         if (status) {
             status.textContent = mensaje;
-            status.className = `info ${type}`;
+            status.className = info ${type}; 
             status.style.display = 'block';
             setTimeout(() => {
                 status.style.display = 'none';
@@ -561,7 +561,7 @@
             grid.classList.remove('single-column');
         });
         if (vistaId === 'perfil-view' || vistaId === 'notificaciones-view') {
-            document.querySelector(`#${vistaId} .main-grid`).classList.add('single-column');
+            document.querySelector(#${vistaId} .main-grid).classList.add('single-column');
         }
 
         // Acciones específicas para cada vista
@@ -668,7 +668,7 @@
         usuario.interesPrincipalDisplay = interesMap[interesCode];
         usuario.descripcion = desc;
         
-        mostrarAlerta("¡Perfil actualizado con éxito!", 'success', 'status-message-perfil');
+        mostrarAlerta(¡Perfil actualizado con éxito!, 'success', 'status-message-perfil');
 
         setTimeout(() => {
             mostrarSubVistaPerfil('perfil-lectura');
@@ -761,8 +761,8 @@
     function filtrarDudas(filter) {
         currentDudaFilter = filter;
         renderizarDudas();
-        if (filter !== 'all') {;
-             mostrarAlerta(`Filtro aplicado: ${interesMap[filter] || filter}`, 'info', 'status-message-duda');
+        if (filter !== 'all') {
+             mostrarAlerta(Filtro aplicado: ${interesMap[filter] || filter}, 'info', 'status-message-duda');
         } else {
              document.getElementById('status-message-duda').style.display = 'none';
         }
@@ -787,7 +787,7 @@
             const tagHTML = duda.tags.map(tag => <span class="tag">${tag}</span>).join('');
             
             const areaDisplay = interesMap[duda.area] || duda.area;
-            const respuestasText = duda.respuestas === 1 ? '1 Respuesta' : `${duda.respuestas} Respuestas`;
+            const respuestasText = duda.respuestas === 1 ? '1 Respuesta' : ${duda.respuestas} Respuestas;
 
             const itemHTML = `
                 <div class="card duda-card" onclick="alert('Ver detalle de la duda: ${duda.titulo}')" style="cursor: pointer;">
