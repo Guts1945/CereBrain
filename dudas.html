@@ -516,9 +516,9 @@
     };
 
     let notificaciones = [
-        { id: 1, tipo: 'duda', titulo: 'Sistema 3x3 por sustitución', texto: 'El usuario Carlos M. ha respondido tu duda.', leida: false, enlace: '#' },
-        { id: 2, tipo: 'tutorial', titulo: 'Introducción al Modelo OSI', texto: 'El autor Ana G. ha respondido tu comentario en el tutorial.', leida: false, enlace: '#' },
-        { id: 3, tipo: 'duda', titulo: 'Teorema de Stokes', texto: 'El usuario Soporte Cerebrain te ha respondido tu duda.', leida: false, enlace: '#' },
+        { id: 1, tipo: 'duda', titulo: 'Sistema 3x3 por sustitución', texto: 'El usuario *Carlos M.* ha respondido tu duda.', leida: false, enlace: '#' },
+        { id: 2, tipo: 'tutorial', titulo: 'Introducción al Modelo OSI', texto: 'El autor *Ana G.* ha respondido tu comentario en el tutorial.', leida: false, enlace: '#' },
+        { id: 3, tipo: 'duda', titulo: 'Teorema de Stokes', texto: 'El usuario *Soporte Cerebrain* te ha respondido tu duda.', leida: false, enlace: '#' },
         { id: 4, tipo: 'duda', titulo: 'Diferencia entre switch y hub', texto: 'Un experto ha comentado tu duda.', leida: true, enlace: '#' },
     ];
     
@@ -537,7 +537,7 @@
         const status = document.getElementById(elementId);
         if (status) {
             status.textContent = mensaje;
-            status.className = info ${type}; 
+            status.className = `info ${type}`; 
             status.style.display = 'block';
             setTimeout(() => {
                 status.style.display = 'none';
@@ -561,7 +561,7 @@
             grid.classList.remove('single-column');
         });
         if (vistaId === 'perfil-view' || vistaId === 'notificaciones-view') {
-            document.querySelector(#${vistaId} .main-grid).classList.add('single-column');
+            document.querySelector(`#${vistaId} .main-grid`).classList.add('single-column');
         }
 
         // Acciones específicas para cada vista
@@ -668,7 +668,7 @@
         usuario.interesPrincipalDisplay = interesMap[interesCode];
         usuario.descripcion = desc;
         
-        mostrarAlerta(¡Perfil actualizado con éxito!, 'success', 'status-message-perfil');
+        mostrarAlerta(`¡Perfil actualizado con éxito!`, 'success', 'status-message-perfil');
 
         setTimeout(() => {
             mostrarSubVistaPerfil('perfil-lectura');
@@ -712,7 +712,7 @@
             const icon = notif.tipo === 'duda' ? 'fas fa-question-circle' : 'fas fa-book-open';
             const itemClass = notif.leida ? 'notification-item' : 'notification-item unread';
             
-            const formattedText = notif.texto.replace(/\(.?)\*/g, '<b>$1</b>');
+            const formattedText = notif.texto.replace(/\*(.*?)\*/g, '<b>$1</b>');
 
             const itemHTML = `
                 <div class="${itemClass}" onclick="marcarLeida(${notif.id})">
@@ -762,7 +762,7 @@
         currentDudaFilter = filter;
         renderizarDudas();
         if (filter !== 'all') {
-             mostrarAlerta(Filtro aplicado: ${interesMap[filter] || filter}, 'info', 'status-message-duda');
+             mostrarAlerta(`Filtro aplicado: ${interesMap[filter] || filter}`, 'info', 'status-message-duda');
         } else {
              document.getElementById('status-message-duda').style.display = 'none';
         }
@@ -776,7 +776,7 @@
         listContainer.innerHTML = '';
 
         if (filteredDudas.length === 0) {
-            listContainer.innerHTML = <p style="text-align:center; color:#718096; padding:30px; background:#f0f4f8; border-radius:8px;">No se encontraron dudas para el filtro: ${interesMap[currentDudaFilter] || 'Todas las áreas'}.</p>;
+            listContainer.innerHTML = `<p style="text-align:center; color:#718096; padding:30px; background:#f0f4f8; border-radius:8px;">No se encontraron dudas para el filtro: ${interesMap[currentDudaFilter] || 'Todas las áreas'}.</p>`;
             return;
         }
 
@@ -784,10 +784,10 @@
         filteredDudas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
         filteredDudas.forEach(duda => {
-            const tagHTML = duda.tags.map(tag => <span class="tag">${tag}</span>).join('');
+            const tagHTML = duda.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
             
             const areaDisplay = interesMap[duda.area] || duda.area;
-            const respuestasText = duda.respuestas === 1 ? '1 Respuesta' : ${duda.respuestas} Respuestas;
+            const respuestasText = duda.respuestas === 1 ? '1 Respuesta' : `${duda.respuestas} Respuestas`;
 
             const itemHTML = `
                 <div class="card duda-card" onclick="alert('Ver detalle de la duda: ${duda.titulo}')" style="cursor: pointer;">
